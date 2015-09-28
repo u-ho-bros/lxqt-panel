@@ -31,7 +31,7 @@
 #include <QDialog>
 #include <QAbstractButton>
 
-#include <LXQt/Settings>
+#include "../panel/pluginsettings.h"
 
 namespace Ui {
     class LXQtTaskbarConfiguration;
@@ -42,13 +42,12 @@ class LXQtTaskbarConfiguration : public QDialog
     Q_OBJECT
 
 public:
-    explicit LXQtTaskbarConfiguration(QSettings &settings, QWidget *parent = 0);
+    explicit LXQtTaskbarConfiguration(PluginSettings &settings, QWidget *parent = 0);
     ~LXQtTaskbarConfiguration();
 
 private:
     Ui::LXQtTaskbarConfiguration *ui;
-    QSettings &mSettings;
-    LXQt::SettingsCache oldSettings;
+    PluginSettings &mSettings;
 
     /*
       Read settings from conf file and put data into controls.

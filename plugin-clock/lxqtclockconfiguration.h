@@ -36,6 +36,7 @@
 #include <QDateTime>
 
 #include <LXQt/Settings>
+#include "../panel/pluginsettings.h"
 
 namespace Ui {
     class LXQtClockConfiguration;
@@ -46,13 +47,12 @@ class LXQtClockConfiguration : public QDialog
     Q_OBJECT
 
 public:
-    explicit LXQtClockConfiguration(QSettings &settings, QWidget *parent = 0);
+    explicit LXQtClockConfiguration(PluginSettings &settings, QWidget *parent = 0);
     ~LXQtClockConfiguration();
 
 private:
     Ui::LXQtClockConfiguration *ui;
-    QSettings &mSettings;
-    LXQt::SettingsCache oldSettings;
+    PluginSettings &mSettings;
 
     /*
       Read settings from conf file and put data into controls.

@@ -36,7 +36,7 @@ const QStringList SpacerConfiguration::msTypes = {
     , QStringLiteral(QT_TR_NOOP("invisible"))
 };
 
-SpacerConfiguration::SpacerConfiguration(QSettings *settings, QWidget *parent)
+SpacerConfiguration::SpacerConfiguration(PluginSettings *settings, QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::SpacerConfiguration)
     , mSettings(settings)

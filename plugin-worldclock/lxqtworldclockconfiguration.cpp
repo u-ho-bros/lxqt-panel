@@ -37,11 +37,10 @@
 #include <QInputDialog>
 
 
-LXQtWorldClockConfiguration::LXQtWorldClockConfiguration(QSettings *settings, QWidget *parent) :
+LXQtWorldClockConfiguration::LXQtWorldClockConfiguration(PluginSettings *settings, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::LXQtWorldClockConfiguration),
     mSettings(settings),
-    mOldSettings(settings),
     mLockCascadeSettingChanges(false),
     mConfigurationTimeZones(NULL),
     mConfigurationManualFormat(NULL)
@@ -387,7 +386,7 @@ void LXQtWorldClockConfiguration::dialogButtonsAction(QAbstractButton *button)
 {
     if (ui->buttons->buttonRole(button) == QDialogButtonBox::ResetRole)
     {
-        mOldSettings.loadToSettings();
+        mSettings->loadFromCache();
         loadSettings();
     }
     else

@@ -29,7 +29,7 @@
 #ifndef LXQTCPULOADCONFIGURATION_H
 #define LXQTCPULOADCONFIGURATION_H
 
-#include <LXQt/Settings>
+#include "../panel/pluginsettings.h"
 
 #include <QDialog>
 
@@ -45,13 +45,12 @@ class LXQtCpuLoadConfiguration : public QDialog
     Q_OBJECT
 
 public:
-    explicit LXQtCpuLoadConfiguration(QSettings *settings, QWidget *parent = 0);
+    explicit LXQtCpuLoadConfiguration(PluginSettings *settings, QWidget *parent = 0);
     ~LXQtCpuLoadConfiguration();
 
 private:
     Ui::LXQtCpuLoadConfiguration *ui;
-    QSettings *mSettings;
-    LXQt::SettingsCache mOldSettings;
+    PluginSettings *mSettings;
 
     /*
       Fills Bar orientation combobox

@@ -29,12 +29,11 @@
 #ifndef LXQTSYSSTATCONFIGURATION_H
 #define LXQTSYSSTATCONFIGURATION_H
 
-#include <LXQt/Settings>
+#include "../panel/pluginsettings.h"
 
 #include <QDialog>
 #include <QAbstractButton>
 #include <QMap>
-
 
 namespace Ui {
     class LXQtSysStatConfiguration;
@@ -51,7 +50,7 @@ class LXQtSysStatConfiguration : public QDialog
     Q_OBJECT
 
 public:
-    explicit LXQtSysStatConfiguration(QSettings *settings, QWidget *parent = 0);
+    explicit LXQtSysStatConfiguration(PluginSettings *settings, QWidget *parent = 0);
     ~LXQtSysStatConfiguration();
 
 public slots:
@@ -72,8 +71,7 @@ signals:
 
 private:
     Ui::LXQtSysStatConfiguration *ui;
-    QSettings *mSettings;
-    LXQt::SettingsCache oldSettings;
+    PluginSettings *mSettings;
 
     void loadSettings();
 

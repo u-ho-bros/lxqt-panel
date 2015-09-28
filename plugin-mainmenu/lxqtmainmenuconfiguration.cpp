@@ -33,11 +33,10 @@
 
 #include <QFileDialog>
 
-LXQtMainMenuConfiguration::LXQtMainMenuConfiguration(QSettings &settings, const QString &defaultShortcut, QWidget *parent) :
+LXQtMainMenuConfiguration::LXQtMainMenuConfiguration(PluginSettings &settings, const QString &defaultShortcut, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::LXQtMainMenuConfiguration),
     mSettings(settings),
-    mOldSettings(settings),
     mDefaultShortcut(defaultShortcut)
 {
     setAttribute(Qt::WA_DeleteOnClose);
@@ -131,7 +130,7 @@ void LXQtMainMenuConfiguration::dialogButtonsAction(QAbstractButton *btn)
 {
     if (ui->buttons->buttonRole(btn) == QDialogButtonBox::ResetRole)
     {
-        mOldSettings.loadToSettings();
+        mSettings.loadFromCache();
         loadSettings();
     }
     else

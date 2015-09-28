@@ -82,11 +82,10 @@ namespace
     }
 }
 
-LXQtSysStatConfiguration::LXQtSysStatConfiguration(QSettings *settings, QWidget *parent) :
+LXQtSysStatConfiguration::LXQtSysStatConfiguration(PluginSettings *settings, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::LXQtSysStatConfiguration),
     mSettings(settings),
-    oldSettings(settings),
     mStat(NULL),
     mColoursDialog(NULL)
 {
@@ -172,7 +171,7 @@ void LXQtSysStatConfiguration::on_buttons_clicked(QAbstractButton *btn)
 {
     if (ui->buttons->buttonRole(btn) == QDialogButtonBox::ResetRole)
     {
-        oldSettings.loadToSettings();
+        mSettings->loadFromCache();
         loadSettings();
     }
     else

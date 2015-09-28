@@ -37,7 +37,7 @@
 #include <QDateTime>
 #include <QDir>
 
-#include <LXQt/Settings>
+#include "../panel/pluginsettings.h"
 
 namespace Ui {
     class DirectoryMenuConfiguration;
@@ -48,13 +48,12 @@ class DirectoryMenuConfiguration : public QDialog
     Q_OBJECT
 
 public:
-    explicit DirectoryMenuConfiguration(QSettings &settings, QWidget *parent = 0);
+    explicit DirectoryMenuConfiguration(PluginSettings &settings, QWidget *parent = 0);
     ~DirectoryMenuConfiguration();
 
 private:
     Ui::DirectoryMenuConfiguration *ui;
-    QSettings &mSettings;
-    LXQt::SettingsCache mOldSettings;
+    PluginSettings &mSettings;
     QDir mBaseDirectory;
     QString mIcon;
     QIcon mDefaultIcon;

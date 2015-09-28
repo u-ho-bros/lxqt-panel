@@ -33,11 +33,11 @@
 #define BAR_ORIENT_LEFTRIGHT "leftRight"
 #define BAR_ORIENT_RIGHTLEFT "rightLeft"
 
-LXQtCpuLoadConfiguration::LXQtCpuLoadConfiguration(QSettings *settings, QWidget *parent) :
+LXQtCpuLoadConfiguration::LXQtCpuLoadConfiguration(PluginSettings *settings, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::LXQtCpuLoadConfiguration),
-    mSettings(settings),
-    mOldSettings(settings)
+    mSettings(settings)
+    //mOldSettings(settings)
 {
     setAttribute(Qt::WA_DeleteOnClose);
     setObjectName("CpuLoadConfigurationWindow");
@@ -117,7 +117,7 @@ void LXQtCpuLoadConfiguration::dialogButtonsAction(QAbstractButton *btn)
 {
     if (ui->buttons->buttonRole(btn) == QDialogButtonBox::ResetRole)
     {
-        mOldSettings.loadToSettings();
+        mSettings->loadFromCache();
         loadSettings();
     }
     else

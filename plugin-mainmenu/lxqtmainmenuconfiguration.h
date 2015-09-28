@@ -29,11 +29,10 @@
 #ifndef LXQTMAINMENUCONFIGURATION_H
 #define LXQTMAINMENUCONFIGURATION_H
 
-#include <LXQt/Settings>
+#include "../panel/pluginsettings.h"
 
 #include <QDialog>
 
-class QSettings;
 class QAbstractButton;
 
 namespace Ui {
@@ -45,13 +44,12 @@ class LXQtMainMenuConfiguration : public QDialog
     Q_OBJECT
 
 public:
-    explicit LXQtMainMenuConfiguration(QSettings &settings, const QString &defaultShortcut, QWidget *parent = 0);
+    explicit LXQtMainMenuConfiguration(PluginSettings &settings, const QString &defaultShortcut, QWidget *parent = 0);
     ~LXQtMainMenuConfiguration();
 
 private:
     Ui::LXQtMainMenuConfiguration *ui;
-    QSettings &mSettings;
-    LXQt::SettingsCache mOldSettings;
+    PluginSettings &mSettings;
     QString mDefaultShortcut;
 
 private slots:

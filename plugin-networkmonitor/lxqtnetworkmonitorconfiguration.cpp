@@ -38,11 +38,10 @@ extern "C" {
 #define STATGRAB_NEWER_THAN_0_90 	1
 #endif
 
-LXQtNetworkMonitorConfiguration::LXQtNetworkMonitorConfiguration(QSettings *settings, QWidget *parent) :
+LXQtNetworkMonitorConfiguration::LXQtNetworkMonitorConfiguration(PluginSettings *settings, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::LXQtNetworkMonitorConfiguration),
-    mSettings(settings),
-    mOldSettings(settings)
+    mSettings(settings)
 {
     setAttribute(Qt::WA_DeleteOnClose);
     setObjectName("NetworkMonitorConfigurationWindow");
@@ -89,7 +88,7 @@ void LXQtNetworkMonitorConfiguration::dialogButtonsAction(QAbstractButton *btn)
 {
     if (ui->buttons->buttonRole(btn) == QDialogButtonBox::ResetRole)
     {
-        mOldSettings.loadToSettings();
+        mSettings->loadFromCache();
         loadSettings();
     }
     else

@@ -32,11 +32,10 @@
 #include "ui_lxqttaskbarconfiguration.h"
 #include <KWindowSystem/KWindowSystem>
 
-LXQtTaskbarConfiguration::LXQtTaskbarConfiguration(QSettings &settings, QWidget *parent):
+LXQtTaskbarConfiguration::LXQtTaskbarConfiguration(PluginSettings &settings, QWidget *parent):
     QDialog(parent),
     ui(new Ui::LXQtTaskbarConfiguration),
-    mSettings(settings),
-    oldSettings(settings)
+    mSettings(settings)
 {
     setAttribute(Qt::WA_DeleteOnClose);
     setObjectName("TaskbarConfigurationWindow");
@@ -121,7 +120,7 @@ void LXQtTaskbarConfiguration::dialogButtonsAction(QAbstractButton *btn)
           could be restored */
         ui->buttonWidthSB->blockSignals(true);
         ui->buttonHeightSB->blockSignals(true);
-        oldSettings.loadToSettings();
+        mSettings.loadFromCache();
         loadSettings();
         ui->buttonWidthSB->blockSignals(false);
         ui->buttonHeightSB->blockSignals(false);

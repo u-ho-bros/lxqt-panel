@@ -29,11 +29,9 @@
 #ifndef LXQTNETWORKMONITORCONFIGURATION_H
 #define LXQTNETWORKMONITORCONFIGURATION_H
 
-#include <LXQt/Settings>
-
 #include <QDialog>
+#include "../panel/pluginsettings.h"
 
-class QSettings;
 class QAbstractButton;
 
 namespace Ui
@@ -46,13 +44,12 @@ class LXQtNetworkMonitorConfiguration : public QDialog
     Q_OBJECT
 
 public:
-    explicit LXQtNetworkMonitorConfiguration(QSettings *settings, QWidget *parent = 0);
+    explicit LXQtNetworkMonitorConfiguration(PluginSettings *settings, QWidget *parent = 0);
     ~LXQtNetworkMonitorConfiguration();
 
 private:
     Ui::LXQtNetworkMonitorConfiguration *ui;
-    QSettings *mSettings;
-    LXQt::SettingsCache mOldSettings;
+    PluginSettings *mSettings;
 
 private slots:
     /*

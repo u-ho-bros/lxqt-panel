@@ -29,11 +29,10 @@
 #include <KWindowSystem>
 #include <QTimer>
 
-DesktopSwitchConfiguration::DesktopSwitchConfiguration(QSettings *settings, QWidget *parent)
+DesktopSwitchConfiguration::DesktopSwitchConfiguration(PluginSettings *settings, QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::DesktopSwitchConfiguration)
     , mSettings(settings)
-    , mOldSettings(settings)
 {
     setAttribute(Qt::WA_DeleteOnClose);
     setObjectName("DesktopSwitchConfigurationWindow");
@@ -91,7 +90,7 @@ void DesktopSwitchConfiguration::dialogButtonsAction(QAbstractButton *btn)
 {
     if (ui->buttons->buttonRole(btn) == QDialogButtonBox::ResetRole)
     {
-        mOldSettings.loadToSettings();
+        mSettings->loadFromCache();
         loadSettings();
     }
     else

@@ -75,11 +75,11 @@ namespace
     };
 }
 
-LXQtClockConfiguration::LXQtClockConfiguration(QSettings &settings, QWidget *parent) :
+LXQtClockConfiguration::LXQtClockConfiguration(PluginSettings &settings, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::LXQtClockConfiguration),
     mSettings(settings),
-    oldSettings(settings),
+    // oldSettings(settings),
     mOldIndex(1)
 {
     setAttribute(Qt::WA_DeleteOnClose);
@@ -267,12 +267,12 @@ void LXQtClockConfiguration::dialogButtonsAction(QAbstractButton *btn)
 {
     if (ui->buttons->buttonRole(btn) == QDialogButtonBox::ResetRole)
     {
-        oldSettings.loadToSettings();
+        mSettings.loadFromCache();
         loadSettings();
     }
     else
     {
-        close();
+     close();
     }
 }
 

@@ -28,7 +28,7 @@
 #ifndef DESKTOPSWITCHCERCONFIGURATION_H
 #define DESKTOPSWITCHCERCONFIGURATION_H
 
-#include <LXQt/Settings>
+#include "../panel/pluginsettings.h"
 
 #include <QDialog>
 #include <QFormLayout>
@@ -46,13 +46,12 @@ class DesktopSwitchConfiguration : public QDialog
     Q_OBJECT
 
 public:
-    explicit DesktopSwitchConfiguration(QSettings *settings, QWidget *parent = 0);
+    explicit DesktopSwitchConfiguration(PluginSettings *settings, QWidget *parent = 0);
     ~DesktopSwitchConfiguration();
 
 private:
     Ui::DesktopSwitchConfiguration *ui;
-    QSettings *mSettings;
-    LXQt::SettingsCache mOldSettings;
+    PluginSettings *mSettings;
 
 private slots:
     /*

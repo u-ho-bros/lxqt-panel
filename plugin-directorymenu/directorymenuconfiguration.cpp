@@ -38,11 +38,10 @@
 #include "ui_directorymenuconfiguration.h"
 
 
-DirectoryMenuConfiguration::DirectoryMenuConfiguration(QSettings &settings, QWidget *parent) :
+DirectoryMenuConfiguration::DirectoryMenuConfiguration(PluginSettings &settings, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DirectoryMenuConfiguration),
     mSettings(settings),
-    mOldSettings(settings),
     mBaseDirectory(QDir::homePath()),
     mDefaultIcon(XdgIcon::fromTheme("folder"))
 {
@@ -93,7 +92,7 @@ void DirectoryMenuConfiguration::dialogButtonsAction(QAbstractButton *btn)
 {
     if (ui->buttons->buttonRole(btn) == QDialogButtonBox::ResetRole)
     {
-        mOldSettings.loadToSettings();
+        mSettings.loadFromCache();
         loadSettings();
     }
     else
