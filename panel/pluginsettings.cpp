@@ -43,8 +43,9 @@ PluginSettings::~PluginSettings()
 QVariant PluginSettings::value(const QString &key, const QVariant &defaultValue) const
 {
     mSettings->beginGroup(mGroup);
-    mSettings->value(key, defaultValue);
+    QVariant value = mSettings->value(key, defaultValue);
     mSettings->endGroup();
+    return value;
 }
 
 void PluginSettings::setValue(const QString &key, const QVariant &value)
@@ -64,14 +65,17 @@ void PluginSettings::remove(const QString &key)
 bool PluginSettings::contains(const QString &key) const
 {
     mSettings->beginGroup(mGroup);
-    mSettings->contains(key);
+    bool ret = mSettings->contains(key);
     mSettings->endGroup();
+    return ret;
 }
 
 int PluginSettings::beginReadArray(const QString &prefix)
 {
     mSettings->beginGroup(mGroup);
+    int ret = mSettings->beginReadArray(prefix);
     mSettings->endGroup();
+    return ret;
 }
 
 void PluginSettings::beginWriteArray(const QString &prefix, int size)
