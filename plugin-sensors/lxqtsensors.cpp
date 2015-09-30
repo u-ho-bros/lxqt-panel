@@ -29,6 +29,7 @@
 #include "lxqtsensorsconfiguration.h"
 #include "../panel/ilxqtpanelplugin.h"
 #include "../panel/ilxqtpanel.h"
+#include "../panel/pluginsettings.h"
 #include <QBoxLayout>
 #include <QDebug>
 #include <QMessageBox>
@@ -58,11 +59,11 @@ LXQtSensors::LXQtSensors(ILXQtPanelPlugin *plugin, QWidget* parent):
 
     QString chipFeatureLabel;
 
-    mSettings->beginGroup("chips");
+    QStringList group = { QStringLiteral("chips") };
 
     for (int i = 0; i < mDetectedChips.size(); ++i)
     {
-        mSettings->beginGroup(mDetectedChips[i].getName());
+        group.push_back(mDetectedChips[i].getName());
         const QList<Feature>& features = mDetectedChips[i].getFeatures();
 
         for (int j = 0; j < features.size(); ++j)
@@ -70,22 +71,26 @@ LXQtSensors::LXQtSensors(ILXQtPanelPlugin *plugin, QWidget* parent):
             if (features[j].getType() == SENSORS_FEATURE_TEMP)
             {
                 chipFeatureLabel = features[j].getLabel();
-                mSettings->beginGroup(chipFeatureLabel);
+                group.push_back(chipFeatureLabel);
 
                 pg = new ProgressBar(this);
                 pg->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
                 // Hide progress bar if it is not enabled
-                if (!mSettings->value("enabled").toBool())
+                group.push_back(QStringLiteral("enabled"));
+                if (!mSettings->value(group.join(QLatin1Char('/'))).toBool())
                 {
                     pg->hide();
                 }
+                group.pop_back();
 
                 pg->setToolTip(chipFeatureLabel);
                 pg->setTextVisible(false);
 
                 QPalette pal = pg->palette();
-                QColor color(mSettings->value("color").toString());
+                group.push_back(QStringLiteral("color"));
+                QColor color(mSettings->value(group.join(QLatin1Char('/'))).toString());
+                group.pop_back();
                 pal.setColor(QPalette::Active, QPalette::Highlight, color);
                 pal.setColor(QPalette::Inactive, QPalette::Highlight, color);
                 pg->setPalette(pal);
@@ -93,13 +98,11 @@ LXQtSensors::LXQtSensors(ILXQtPanelPlugin *plugin, QWidget* parent):
                 mTemperatureProgressBars.push_back(pg);
                 mLayout->addWidget(pg);
 
-                mSettings->endGroup();
+                group.pop_back();
             }
         }
-        mSettings->endGroup();
+        group.pop_back();
     }
-
-    mSettings->endGroup();
 
     // Fit plugin to current panel
     realign();
@@ -269,20 +272,21 @@ void LXQtSensors::settingsChanged()
     QList<ProgressBar*>::iterator temperatureProgressBarsIt =
         mTemperatureProgressBars.begin();
 
-    mSettings->beginGroup("chips");
+    QStringList group = { QStringLiteral("chips") };
 
     for (int i = 0; i < mDetectedChips.size(); ++i)
     {
-        mSettings->beginGroup(mDetectedChips[i].getName());
+        group.push_back(mDetectedChips[i].getName());
         const QList<Feature>& features = mDetectedChips[i].getFeatures();
 
         for (int j = 0; j < features.size(); ++j)
         {
             if (features[j].getType() == SENSORS_FEATURE_TEMP)
             {
-                mSettings->beginGroup(features[j].getLabel());
+                group.push_back(features[j].getLabel());
 
-                if (mSettings->value("enabled").toBool())
+                group.push_back(QStringLiteral("enabled"));
+                if (mSettings->value(group.join(QLatin1Char('/'))).toBool())
                 {
                     (*temperatureProgressBarsIt)->show();
                 }
@@ -290,24 +294,26 @@ void LXQtSensors::settingsChanged()
                 {
                     (*temperatureProgressBarsIt)->hide();
                 }
+                group.pop_back();
 
                 QPalette pal = (*temperatureProgressBarsIt)->palette();
-                QColor color(mSettings->value("color").toString());
+                group.push_back(QStringLiteral("color"));
+                QColor color(mSettings->value(group.join(QLatin1Char('/'))).toString());
+                group.pop_back();
                 pal.setColor(QPalette::Active, QPalette::Highlight, color);
                 pal.setColor(QPalette::Inactive, QPalette::Highlight, color);
                 (*temperatureProgressBarsIt)->setPalette(pal);
 
-                mSettings->endGroup();
+                group.pop_back();
 
                 // Go to the next temperature progress bar
                 ++temperatureProgressBarsIt;
             }
         }
 
-        mSettings->endGroup();
+        group.pop_back();
     }
 
-    mSettings->endGroup();
 
 
     if (mSettings->value("warningAboutHighTemperature").toBool())
@@ -404,36 +410,38 @@ void LXQtSensors::initDefaultSettings()
         mSettings->setValue("useFahrenheitScale", false);
     }
 
-    mSettings->beginGroup("chips");
+    QStringList group = { QStringLiteral("chips") };
 
     // Initialize default sensors settings
     for (int i = 0; i < mDetectedChips.size(); ++i)
     {
-        mSettings->beginGroup(mDetectedChips[i].getName());
+        group.push_back(mDetectedChips[i].getName());
         const QList<Feature>& features = mDetectedChips[i].getFeatures();
 
         for (int j = 0; j < features.size(); ++j)
         {
             if (features[j].getType() == SENSORS_FEATURE_TEMP)
             {
-                mSettings->beginGroup(features[j].getLabel());
-                if (!mSettings->contains("enabled"))
+                group.push_back(features[j].getLabel());
+                group.push_back(QStringLiteral("enabled"));
+                if (!mSettings->contains(group.join(QStringLiteral("/"))))
                 {
-                    mSettings->setValue("enabled", true);
+                    mSettings->setValue(group.join(QStringLiteral("/")), true);
                 }
+                group.pop_back();
 
-                if (!mSettings->contains("color"))
+                group.push_back(QStringLiteral("color"));
+                if (!mSettings->contains(group.join(QStringLiteral("/"))))
                 {
                     // This is the default from QtDesigner
-                    mSettings->setValue("color", QColor(qRgb(98, 140, 178)).name());
+                    mSettings->setValue(group.join(QStringLiteral("/")), QColor(qRgb(98, 140, 178)).name());
                 }
-                mSettings->endGroup();
+                group.pop_back();
+                group.pop_back();
             }
         }
-        mSettings->endGroup();
+        group.pop_back();
     }
-
-    mSettings->endGroup();
 
     if (!mSettings->contains("warningAboutHighTemperature"))
     {

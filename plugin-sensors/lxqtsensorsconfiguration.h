@@ -33,25 +33,25 @@
 #include <QDateTime>
 #include <QDialog>
 #include <QLocale>
-#include <LXQt/Settings>
 
 
 namespace Ui {
     class LXQtSensorsConfiguration;
 }
 
+class PluginSettings;
+
 class LXQtSensorsConfiguration : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit LXQtSensorsConfiguration(QSettings *settings, QWidget *parent = 0);
+    explicit LXQtSensorsConfiguration(PluginSettings * settings, QWidget *parent = 0);
     ~LXQtSensorsConfiguration();
 
 private:
     Ui::LXQtSensorsConfiguration *ui;
-    QSettings *mSettings;
-    LXQt::SettingsCache oldSettings;
+    PluginSettings * mSettings;
 
     /*
       Read settings from conf file and put data into controls.

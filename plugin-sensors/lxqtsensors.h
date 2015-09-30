@@ -44,8 +44,7 @@ public:
     QSize sizeHint() const;
 };
 
-
-class QSettings;
+class PluginSettings;
 class ILXQtPanelPlugin;
 class QBoxLayout;
 
@@ -74,7 +73,7 @@ private:
     QSet<ProgressBar*> mHighTemperatureProgressBars;
     double celsiusToFahrenheit(double celsius);
     void initDefaultSettings();
-    QSettings *mSettings;
+    PluginSettings *mSettings;
 };
 
 
