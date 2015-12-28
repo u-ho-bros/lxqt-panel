@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="ru_RU">
+<TS version="2.0" language="hr_HR">
 <context>
     <name>FirstDayCombo</name>
     <message>
@@ -14,77 +14,77 @@
     <message>
         <location filename="../lxqtclockconfiguration.ui" line="14"/>
         <source>Clock Settings</source>
-        <translation>Настройка даты и времени</translation>
+        <translation type="unfinished">Postavke sata</translation>
     </message>
     <message>
         <location filename="../lxqtclockconfiguration.ui" line="20"/>
         <source>Time</source>
-        <translation>Время</translation>
+        <translation type="unfinished">Vrijeme</translation>
     </message>
     <message>
         <location filename="../lxqtclockconfiguration.ui" line="26"/>
         <source>&amp;Show seconds</source>
-        <translation>&amp;Показывать секунды</translation>
+        <translation type="unfinished">&amp;Pokaži sekunde</translation>
     </message>
     <message>
         <location filename="../lxqtclockconfiguration.ui" line="33"/>
         <source>12 &amp;hour style</source>
-        <translation>12 &amp;часовой формат</translation>
+        <translation type="unfinished">12 &amp;satni stil</translation>
     </message>
     <message>
         <location filename="../lxqtclockconfiguration.ui" line="40"/>
         <source>&amp;Use UTC</source>
-        <translation>&amp;Использовать UTC</translation>
-    </message>
-    <message>
-        <location filename="../lxqtclockconfiguration.ui" line="50"/>
-        <source>Date</source>
-        <translation>Дата</translation>
-    </message>
-    <message>
-        <location filename="../lxqtclockconfiguration.ui" line="59"/>
-        <source>Date &amp;format</source>
-        <translation>Ф&amp;ормат даты</translation>
+        <translation type="unfinished">&amp;Koristi UTC</translation>
     </message>
     <message>
         <location filename="../lxqtclockconfiguration.ui" line="76"/>
         <source>&amp;Do not show date</source>
-        <translation>&amp;Не показывать дату</translation>
+        <translation type="unfinished">&amp;Ne pokazuj datum</translation>
     </message>
     <message>
         <location filename="../lxqtclockconfiguration.ui" line="86"/>
         <source>Show date &amp;before time</source>
-        <translation>Показывать дату &amp;перед временем</translation>
+        <translation type="unfinished">Pokaži datum &amp;prije vremena</translation>
     </message>
     <message>
         <location filename="../lxqtclockconfiguration.ui" line="93"/>
         <source>Show date &amp;after time</source>
-        <translation>Показывать дату &amp;после времени</translation>
+        <translation type="unfinished">Pokaži datum &amp;poslije vremena</translation>
     </message>
     <message>
         <location filename="../lxqtclockconfiguration.ui" line="100"/>
         <source>Show date below time on new &amp;line</source>
-        <translation>Показывать дату под временем новой &amp;строкой</translation>
+        <translation type="unfinished">Pokaži datum ispod u novom &amp;retku</translation>
     </message>
     <message>
         <location filename="../lxqtclockconfiguration.ui" line="107"/>
         <source>First day of week in calendar</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Prvi dan u tjednu u kalendaru</translation>
     </message>
     <message>
         <location filename="../lxqtclockconfiguration.ui" line="124"/>
         <source>Orientation</source>
-        <translation>Ориентация</translation>
+        <translation type="unfinished">Orijentacija</translation>
     </message>
     <message>
         <location filename="../lxqtclockconfiguration.ui" line="130"/>
         <source>Auto&amp;rotate when the panel is vertical</source>
-        <translation>Авто&amp;поворот для вертикальной панели</translation>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../lxqtclockconfiguration.ui" line="50"/>
+        <source>Date</source>
+        <translation type="unfinished">Datum</translation>
+    </message>
+    <message>
+        <location filename="../lxqtclockconfiguration.ui" line="59"/>
+        <source>Date &amp;format</source>
+        <translation type="unfinished">Format &amp;datuma</translation>
     </message>
     <message>
         <location filename="../lxqtclockconfiguration.cpp" line="284"/>
         <source>Input custom date format</source>
-        <translation>Введите свой формат даты</translation>
+        <translation type="unfinished">Unesite prilagođeni format datuma</translation>
     </message>
     <message>
         <location filename="../lxqtclockconfiguration.cpp" line="284"/>
@@ -107,25 +107,25 @@ will also be treated as text and not be used as an expression.
 
 
 Custom date format:</source>
-        <translation>Интерпретация последовательностей формата даты:
+        <translation type="unfinished">Interpretirani dijelovi formata datuma su:
 
-d	день как число без ноля перед ним (от 1 до 31)
-dd	день как число с нолём перед ним (от 01 до 31)
-ddd	аббревиат́ура названия дня недели (от «Пн» к «Вс»).
-dddd	полное название дня недели (от «Понедельник» к «Воскресенье»).
-M	месяц как число без ноля перед ним (от 1 до 12)
-MM	месяц как число с нолём перед ним (от 01 до 12)
-MMM	аббревиат́ура названия месяца (от «Янв» до «Дек»).
-MMMM	полное название месяца (от «Январь» до «Декабрь»).
-yy	год как двухразрядное число (00-99)
-yyyy	год как четырёхразрядное число
+d	dan kao broj bez početne nule (1 to 31)
+dd	dan kao broj sa početnom nulom (01 to 31)
+ddd	skraćeno lokalizirano ime dana (npr. &apos;Pon&apos; do &apos;Ned&apos;).
+dddd	dugo lokalizirano ime  (npr. &apos;Ponedjeljak&apos; do &apos;Nedjelje&apos;).
+M	mjesec kao broj bezpočetne nule (1-12)
+MM	mjesec kao broj sa početnom nulom (01-12)
+MMM	skraćeno lokalizirano ime mjeseca (npr. &apos;Sij&apos; do &apos;Pro&apos;).
+MMMM	dugo lokalizirano ime mjeseca (npr. &apos;Siječanj&apos; do &apos;Prosinac&apos;).
+yy	godina sa dvoznamenkastim brojemr (00-99)
+yyyy	godina kao četveroznamenkasti broj
 
-Все прочие введёные знаки будут обработаны как текст.
-Любая последовательность знаков, заключённая в одинарные кавычки (&apos;),
-также будет обработана как текст и не будет использована в выражении.
+Svi ostali znakovi unosa biti će tretirani kao tekst.
+Bilo koji dio znakova  koji su zatvoreni jednostrukim navodnicima (&apos;)
+će također biti interpretirani kao tekst.i neće biti korišteni kao izraz
 
 
-Свой формат даты:</translation>
+Prilagođeni format datuma:</translation>
     </message>
 </context>
 </TS>

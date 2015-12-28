@@ -104,6 +104,7 @@ public slots:
 
 protected:
     virtual void dragEnterEvent(QDragEnterEvent *event);
+    virtual void dragMoveEvent(QDragMoveEvent * event);
     virtual void dragLeaveEvent(QDragLeaveEvent *event);
     virtual void dropEvent(QDropEvent *event);
     void mousePressEvent(QMouseEvent *event);
@@ -134,8 +135,8 @@ private slots:
     void activateWithDraggable();
 
 signals:
-    void dropped(QDropEvent * event);
-    void dragging(bool executing = false);
+    void dropped(QObject * dragSource, QPoint const & pos);
+    void dragging(QObject * dragSource, QPoint const & pos);
 };
 
 typedef QHash<WId,LXQtTaskButton*> LXQtTaskButtonHash;

@@ -69,9 +69,9 @@ QVariant PanelPluginsModel::data(const QModelIndex & index, int role/* = Qt::Dis
     {
         case Qt::DisplayRole:
             if (plugin.second.isNull())
-                ret = QStringLiteral("<b>Unknown</b> (%1)").arg(plugin.first);
+                ret = QString("<b>Unknown</b> (%1)").arg(plugin.first);
             else
-                ret = QStringLiteral("<b>%1</b> (%2)").arg(plugin.second->name(), plugin.first);
+                ret = QString("<b>%1</b> (%2)").arg(plugin.second->name(), plugin.first);
             break;
         case Qt::DecorationRole:
             if (plugin.second.isNull())
@@ -96,7 +96,7 @@ QStringList PanelPluginsModel::pluginNames() const
     QStringList names;
     for (auto const & p : mPlugins)
         names.append(p.first);
-    return std::move(names);
+    return names;
 }
 
 QList<Plugin *> PanelPluginsModel::plugins() const
@@ -105,7 +105,7 @@ QList<Plugin *> PanelPluginsModel::plugins() const
     for (auto const & p : mPlugins)
         if (!p.second.isNull())
             plugins.append(p.second.data());
-    return std::move(plugins);
+    return plugins;
 }
 
 Plugin* PanelPluginsModel::pluginByName(QString name) const
@@ -246,7 +246,7 @@ QString PanelPluginsModel::findNewPluginSettingsGroup(const QString &pluginType)
     groups.sort();
 
     // Generate new section name
-    QString pluginName = QStringLiteral("%1").arg(pluginType);
+    QString pluginName = QString("%1").arg(pluginType);
 
     if (!groups.contains(pluginName))
         return pluginName;
@@ -254,7 +254,7 @@ QString PanelPluginsModel::findNewPluginSettingsGroup(const QString &pluginType)
     {
         for (int i = 2; true; ++i)
         {
-            pluginName = QStringLiteral("%1%2").arg(pluginType).arg(i);
+            pluginName = QString("%1%2").arg(pluginType).arg(i);
             if (!groups.contains(pluginName))
                 return pluginName;
         }

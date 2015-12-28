@@ -59,8 +59,8 @@ LXQtTaskGroup::LXQtTaskGroup(const QString &groupName, QIcon icon, ILXQtPanelPlu
 
     connect(this, SIGNAL(clicked(bool)), this, SLOT(onClicked(bool)));
     connect(KWindowSystem::self(), SIGNAL(currentDesktopChanged(int)), this, SLOT(onDesktopChanged(int)));
-    connect(KWindowSystem::self(), SIGNAL(windowRemoved(WId)), this, SLOT(onWindowRemoved(WId)));
     connect(KWindowSystem::self(), SIGNAL(activeWindowChanged(WId)), this, SLOT(onActiveWindowChanged(WId)));
+    connect(parent, &LXQtTaskBar::windowRemoved, this, &LXQtTaskGroup::onWindowRemoved);
 }
 
 /************************************************
@@ -84,6 +84,7 @@ void LXQtTaskGroup::contextMenuEvent(QContextMenuEvent *event)
         mPreventPopup = false;
     });
     menu->setGeometry(mPlugin->panel()->calculatePopupWindowPos(mapToGlobal(event->pos()), menu->sizeHint()));
+    mPlugin->willShowWindow(menu);
     menu->show();
 }
 
@@ -329,7 +330,7 @@ void LXQtTaskGroup::regroup()
     {
         QString t = QString("%1 - %2 windows").arg(mGroupName).arg(cont);
         setText(t);
-        setToolTip(parentTaskBar()->isShowGroupOnHover() ? QStringLiteral() : t);
+        setToolTip(parentTaskBar()->isShowGroupOnHover() ? QString() : t);
         setWindowId(0);
     }
 }
@@ -418,6 +419,7 @@ void LXQtTaskGroup::setPopupVisible(bool visible, bool fast)
             recalculateFramePosition();
         }
 
+        mPlugin->willShowWindow(mPopup);
         mPopup->show();
         emit popupShown(this);
     }
@@ -550,13 +552,12 @@ void LXQtTaskGroup::enterEvent(QEvent *event)
  ************************************************/
 void LXQtTaskGroup::dragEnterEvent(QDragEnterEvent *event)
 {
-    sDraggging = true;
     // only show the popup if we aren't dragging a taskgroup
     if (!event->mimeData()->hasFormat(mimeDataFormat()))
     {
         setPopupVisible(true);
-        LXQtTaskButton::dragEnterEvent(event);
     }
+    LXQtTaskButton::dragEnterEvent(event);
 }
 
 /************************************************
@@ -568,8 +569,6 @@ void LXQtTaskGroup::dragLeaveEvent(QDragLeaveEvent *event)
     // do not close the popup
     if (!sDraggging)
         setPopupVisible(false);
-    else
-        sDraggging = false;
     LXQtTaskButton::dragLeaveEvent(event);
 }
 

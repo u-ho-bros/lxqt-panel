@@ -85,6 +85,7 @@ LXQtTaskBar::LXQtTaskBar(ILXQtPanelPlugin *plugin, QWidget *parent) :
     connect(KWindowSystem::self(), SIGNAL(stackingOrderChanged()), SLOT(refreshTaskList()));
     connect(KWindowSystem::self(), static_cast<void (KWindowSystem::*)(WId, NET::Properties, NET::Properties2)>(&KWindowSystem::windowChanged)
             , this, &LXQtTaskBar::onWindowChanged);
+    connect(KWindowSystem::self(), &KWindowSystem::windowRemoved, this, &LXQtTaskBar::onWindowRemoved);
 }
 
 /************************************************
@@ -140,8 +141,10 @@ bool LXQtTaskBar::acceptWindow(WId window) const
 void LXQtTaskBar::dragEnterEvent(QDragEnterEvent* event)
 {
     if (event->mimeData()->hasFormat(LXQtTaskGroup::mimeDataFormat()))
+    {
         event->acceptProposedAction();
-    else
+        buttonMove(nullptr, qobject_cast<LXQtTaskGroup *>(event->source()), event->pos());
+    } else
         event->ignore();
     QWidget::dragEnterEvent(event);
 }
@@ -149,56 +152,69 @@ void LXQtTaskBar::dragEnterEvent(QDragEnterEvent* event)
 /************************************************
 
  ************************************************/
-void LXQtTaskBar::dropEvent(QDropEvent* event)
+void LXQtTaskBar::dragMoveEvent(QDragMoveEvent * event)
 {
-    if (!event->mimeData()->hasFormat(LXQtTaskGroup::mimeDataFormat()))
-    {
-        event->ignore();
-        return;
-    }
+    //we don't get any dragMoveEvents if dragEnter wasn't accepted
+    buttonMove(nullptr, qobject_cast<LXQtTaskGroup *>(event->source()), event->pos());
+    QWidget::dragMoveEvent(event);
+}
 
-    QString data;
-    QDataStream stream(event->mimeData()->data(LXQtTaskGroup::mimeDataFormat()));
-    stream >> data;
+/************************************************
 
-    LXQtTaskGroup *group = mGroupsHash.value(data, NULL);
-    if (!group)
+ ************************************************/
+void LXQtTaskBar::buttonMove(LXQtTaskGroup * dst, LXQtTaskGroup * src, QPoint const & pos)
+{
+    int src_index;
+    if (!src || -1 == (src_index = mLayout->indexOf(src)))
     {
         qDebug() << "Dropped invalid";
         return;
     }
 
-    int droppedIndex = mLayout->indexOf(group);
-    int newPos = -1;
     const int size = mLayout->count();
-    if (mPlugin->panel()->isHorizontal())
+    Q_ASSERT(0 < size);
+    //dst is nullptr in case the drop occured on empty space in taskbar
+    int dst_index;
+    if (nullptr == dst)
     {
-        for (int i = 0; i < droppedIndex && newPos == -1; i++)
-            if (mLayout->itemAt(i)->widget()->x() + mLayout->itemAt(i)->widget()->width() / 2 > event->pos().x())
-                newPos = i;
+        //moving based on taskbar (not signaled by button)
+        QRect occupied = mLayout->occupiedGeometry();
+        QRect last_empty_row{occupied};
+        if (mPlugin->panel()->isHorizontal())
+        {
+            last_empty_row.setTopLeft(mLayout->itemAt(size - 1)->geometry().topRight());
+        } else
+        {
+            last_empty_row.setTopLeft(mLayout->itemAt(size - 1)->geometry().bottomLeft());
+        }
 
-        for (int i = size - 1; i > droppedIndex && newPos == -1; i--)
-            if (mLayout->itemAt(i)->widget()->x() + mLayout->itemAt(i)->widget()->width() / 2 < event->pos().x())
-                newPos = i;
-    }
-    else
+        if (occupied.contains(pos) && !last_empty_row.contains(pos))
+            return;
+
+        dst_index = size;
+    } else
     {
-        for (int i = 0; i < droppedIndex && newPos == -1; i++)
-            if (mLayout->itemAt(i)->widget()->y() + mLayout->itemAt(i)->widget()->height() / 2 > event->pos().y())
-                newPos = i;
-
-        for (int i = size - 1; i > droppedIndex && newPos == -1; i--)
-            if (mLayout->itemAt(i)->widget()->y() + mLayout->itemAt(i)->widget()->height() / 2 < event->pos().y())
-                newPos = i;
+        //moving based on signal from child button
+        dst_index = mLayout->indexOf(dst);
+        if (mPlugin->panel()->isHorizontal())
+        {
+            if (dst->rect().center().x() < pos.x())
+                ++dst_index;
+        } else
+        {
+            if (dst->rect().center().y() < pos.y())
+                ++dst_index;
+        }
     }
 
-    if (newPos == -1 || droppedIndex == newPos)
+    //moving lower index to higher one => consider as the QList::move => insert(to, takeAt(from))
+    if (src_index < dst_index)
+        --dst_index;
+
+    if (dst_index == src_index)
         return;
 
-    mLayout->moveItem(droppedIndex, newPos);
-    mLayout->invalidate();
-
-    QWidget::dropEvent(event);
+    mLayout->moveItem(src_index, dst_index, true);
 }
 
 /************************************************
@@ -229,6 +245,9 @@ void LXQtTaskBar::addWindow(WId window, QString const & groupId)
         connect(group, SIGNAL(visibilityChanged(bool)), this, SLOT(refreshPlaceholderVisibility()));
         connect(group, &LXQtTaskGroup::popupShown, this, &LXQtTaskBar::groupPopupShown);
         connect(group, SIGNAL(windowDisowned(WId)), this, SLOT(refreshTaskList()));
+        connect(group, &LXQtTaskButton::dragging, this, [this] (QObject * dragSource, QPoint const & pos) {
+            buttonMove(qobject_cast<LXQtTaskGroup *>(sender()), qobject_cast<LXQtTaskGroup *>(dragSource), pos);
+        });
 
         mLayout->addWidget(group);
         mGroupsHash.insert(groupId, group);
@@ -242,18 +261,26 @@ void LXQtTaskBar::addWindow(WId window, QString const & groupId)
 
 void LXQtTaskBar::refreshTaskList()
 {
+    QList<WId> new_list;
     // Just add new windows to groups, deleting is up to the groups
-    QList<WId> tmp = KWindowSystem::stackingOrder();
-
-    Q_FOREACH (WId wnd, tmp)
+    for (auto const wnd: KWindowSystem::stackingOrder())
     {
         if (acceptWindow(wnd))
         {
+            new_list << wnd;
             // If grouping disabled group behaves like regular button
             QString id = mGroupingEnabled ? KWindowInfo(wnd, 0, NET::WM2WindowClass).windowClassClass() : QString("%1").arg(wnd);
             addWindow(wnd, id);
         }
     }
+
+    //emulate windowRemoved if known window not reported by KWindowSystem
+    for (auto const & wid: mKnownWindows)
+    {
+        if (0 > new_list.indexOf(wid))
+            emit windowRemoved(wid);
+    }
+    mKnownWindows.swap(new_list);
 
     refreshPlaceholderVisibility();
 }
@@ -276,6 +303,19 @@ void LXQtTaskBar::onWindowChanged(WId window, NET::Properties prop, NET::Propert
 
     if (!consumed && acceptWindow(window))
         addWindow(window, id);
+}
+
+/************************************************
+
+ ************************************************/
+void LXQtTaskBar::onWindowRemoved(WId window)
+{
+    auto const pos = mKnownWindows.indexOf(window);
+    if (0 <= pos)
+    {
+        mKnownWindows.removeAt(pos);
+        emit windowRemoved(window);
+    }
 }
 
 /************************************************

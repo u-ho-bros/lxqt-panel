@@ -35,7 +35,7 @@
 #include "popupmenu.h"
 #include "plugin.h"
 #include "panelpluginsmodel.h"
-#include <LXQt/Settings>
+#include "windownotifier.h"
 #include <LXQt/PluginInfo>
 
 #include <QScreen>
@@ -112,10 +112,12 @@ QString LXQtPanel::positionToStr(ILXQtPanel::Position position)
 /************************************************
 
  ************************************************/
-LXQtPanel::LXQtPanel(const QString &configGroup, QWidget *parent) :
+LXQtPanel::LXQtPanel(const QString &configGroup, LXQt::Settings *settings, QWidget *parent) :
     QFrame(parent),
+    mSettings(settings),
     mConfigGroup(configGroup),
     mPlugins{nullptr},
+    mStandaloneWindows{new WindowNotifier},
     mPanelSize(0),
     mIconSize(0),
     mLineCount(0),
@@ -152,6 +154,7 @@ LXQtPanel::LXQtPanel(const QString &configGroup, QWidget *parent) :
 
     LXQtPanelWidget = new QFrame(this);
     LXQtPanelWidget->setObjectName("BackgroundWidget");
+    LXQtPanelWidget->setAutoFillBackground(true);
     QGridLayout* lav = new QGridLayout();
     lav->setMargin(0);
     setLayout(lav);
@@ -175,8 +178,9 @@ LXQtPanel::LXQtPanel(const QString &configGroup, QWidget *parent) :
     connect(LXQt::Settings::globalSettings(), SIGNAL(settingsChanged()), this, SLOT(update()));
     connect(lxqtApp, SIGNAL(themeChanged()), this, SLOT(realign()));
 
-    LXQtPanelApplication *app = reinterpret_cast<LXQtPanelApplication*>(qApp);
-    mSettings = app->settings();
+    connect(mStandaloneWindows.data(), &WindowNotifier::firstShown, this, &LXQtPanel::showPanel);
+    connect(mStandaloneWindows.data(), &WindowNotifier::lastHidden, this, &LXQtPanel::hidePanel);
+
     readSettings();
     // the old position might be on a visible screen
     ensureVisible();
@@ -474,6 +478,7 @@ void LXQtPanel::updateWmStrut()
     if(wid == 0 || !isVisible())
         return;
 
+    const QRect wholeScreen = QApplication::desktop()->geometry();
     const QRect rect = geometry();
     // NOTE: http://standards.freedesktop.org/wm-spec/wm-spec-latest.html
     // Quote from the EWMH spec: " Note that the strut is relative to the screen edge, and not the edge of the xinerama monitor."
@@ -486,7 +491,7 @@ void LXQtPanel::updateWmStrut()
         KWindowSystem::setExtendedStrut(wid,
                                         /* Left   */  0, 0, 0,
                                         /* Right  */  0, 0, 0,
-                                        /* Top    */  getReserveDimension(), rect.left(), rect.right(),
+                                        /* Top    */  rect.top() + getReserveDimension(), rect.left(), rect.right(),
                                         /* Bottom */  0, 0, 0
                                        );
         break;
@@ -496,13 +501,13 @@ void LXQtPanel::updateWmStrut()
                                         /* Left   */  0, 0, 0,
                                         /* Right  */  0, 0, 0,
                                         /* Top    */  0, 0, 0,
-                                        /* Bottom */  getReserveDimension(), rect.left(), rect.right()
+                                        /* Bottom */  wholeScreen.bottom() - rect.bottom() + getReserveDimension(), rect.left(), rect.right()
                                        );
         break;
 
     case LXQtPanel::PositionLeft:
         KWindowSystem::setExtendedStrut(wid,
-                                        /* Left   */  getReserveDimension(), rect.top(), rect.bottom(),
+                                        /* Left   */  rect.left() + getReserveDimension(), rect.top(), rect.bottom(),
                                         /* Right  */  0, 0, 0,
                                         /* Top    */  0, 0, 0,
                                         /* Bottom */  0, 0, 0
@@ -513,7 +518,7 @@ void LXQtPanel::updateWmStrut()
     case LXQtPanel::PositionRight:
         KWindowSystem::setExtendedStrut(wid,
                                         /* Left   */  0, 0, 0,
-                                        /* Right  */  getReserveDimension(), rect.top(), rect.bottom(),
+                                        /* Right  */  wholeScreen.right() - rect.right() + getReserveDimension(), rect.top(), rect.bottom(),
                                         /* Top    */  0, 0, 0,
                                         /* Bottom */  0, 0, 0
                                        );
@@ -590,6 +595,7 @@ void LXQtPanel::showConfigDialog()
         mConfigDialog = new ConfigPanelDialog(this, nullptr /*make it top level window*/);
 
     mConfigDialog->showConfigPanelPage();
+    mStandaloneWindows->observeWindow(mConfigDialog.data());
     mConfigDialog->show();
     mConfigDialog->raise();
     mConfigDialog->activateWindow();
@@ -609,6 +615,7 @@ void LXQtPanel::showAddPluginDialog()
         mConfigDialog = new ConfigPanelDialog(this, nullptr /*make it top level window*/);
 
     mConfigDialog->showConfigPluginsPage();
+    mStandaloneWindows->observeWindow(mConfigDialog.data());
     mConfigDialog->show();
     mConfigDialog->raise();
     mConfigDialog->activateWindow();
@@ -934,7 +941,7 @@ void LXQtPanel::showPopupMenu(Plugin *plugin)
 
     menu->addTitle(QIcon(), tr("Panel"));
 
-    menu->addAction(XdgIcon::fromTheme(QStringLiteral("configure")),
+    menu->addAction(XdgIcon::fromTheme(QLatin1String("configure")),
                    tr("Configure Panel"),
                    this, SLOT(showConfigDialog())
                   );
@@ -952,7 +959,7 @@ void LXQtPanel::showPopupMenu(Plugin *plugin)
 
     if (a->count() > 1)
     {
-        menu->addAction(XdgIcon::fromTheme(QStringLiteral("list-remove")),
+        menu->addAction(XdgIcon::fromTheme(QLatin1String("list-remove")),
                        tr("Remove Panel"),
                        this, SLOT(userRequestForDeletion())
                       );
@@ -968,6 +975,7 @@ void LXQtPanel::showPopupMenu(Plugin *plugin)
      * of QDesktopWidget::availableGeometry)
      */
     menu->setGeometry(calculatePopupWindowPos(QCursor::pos(), menu->sizeHint()));
+    willShowWindow(menu);
     menu->show();
 }
 
@@ -1044,6 +1052,14 @@ QRect LXQtPanel::calculatePopupWindowPos(const ILXQtPanelPlugin *plugin, const Q
 /************************************************
 
  ************************************************/
+void LXQtPanel::willShowWindow(QWidget * w)
+{
+    mStandaloneWindows->observeWindow(w);
+}
+
+/************************************************
+
+ ************************************************/
 QString LXQtPanel::qssPosition() const
 {
     return positionToStr(position());
@@ -1108,19 +1124,24 @@ void LXQtPanel::showPanel()
 
 void LXQtPanel::hidePanel()
 {
-    if (mHidable && !mHidden)
+    if (mHidable && !mHidden
+            && !mStandaloneWindows->isAnyWindowShown()
+       )
         mHideTimer.start();
 }
 
 void LXQtPanel::hidePanelWork()
 {
-    if (mHidable && !mHidden && !geometry().contains(QCursor::pos()))
+    if (!geometry().contains(QCursor::pos()))
     {
-        mHidden = true;
-        setPanelGeometry();
-    } else
-    {
-        mHideTimer.start();
+        if (!mStandaloneWindows->isAnyWindowShown())
+        {
+            mHidden = true;
+            setPanelGeometry();
+        } else
+        {
+            mHideTimer.start();
+        }
     }
 }
 
@@ -1129,7 +1150,7 @@ void LXQtPanel::setHidable(bool hidable, bool save)
     if (mHidable == hidable)
         return;
 
-    mHidable = mHidden = hidable;
+    mHidable = hidable;
 
     if (save)
         saveSettings(true);

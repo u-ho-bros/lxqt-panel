@@ -33,6 +33,7 @@
 #include <QString>
 #include <QTimer>
 #include <QPointer>
+#include <LXQt/Settings>
 #include "ilxqtpanel.h"
 #include "lxqtpanelglobals.h"
 
@@ -47,6 +48,7 @@ class PluginInfo;
 class LXQtPanelLayout;
 class ConfigPanelDialog;
 class PanelPluginsModel;
+class WindowNotifier;
 
 /*! \brief The LXQtPanel class provides a single lxqt-panel.
  */
@@ -59,6 +61,8 @@ class LXQT_PANEL_API LXQtPanel : public QFrame, public ILXQtPanel
     // for configuration dialog
     friend class ConfigPanelWidget;
     friend class ConfigPluginsWidget;
+    friend class ConfigPanelDialog;
+    friend class PanelPluginsModel;
 
 public:
     enum Alignment {
@@ -67,7 +71,7 @@ public:
         AlignmentRight  =  1
     };
 
-    LXQtPanel(const QString &configGroup, QWidget *parent = 0);
+    LXQtPanel(const QString &configGroup, LXQt::Settings *settings, QWidget *parent = 0);
     virtual ~LXQtPanel();
 
     QString name() { return mConfigGroup; }
@@ -77,11 +81,12 @@ public:
     void showPopupMenu(Plugin *plugin = 0);
 
     // ILXQtPanel .........................
-    ILXQtPanel::Position position() const { return mPosition; }
-    QRect globalGometry() const;
+    ILXQtPanel::Position position() const override { return mPosition; }
+    QRect globalGometry() const override;
     Plugin *findPlugin(const ILXQtPanelPlugin *iPlugin) const;
-    QRect calculatePopupWindowPos(QPoint const & absolutePos, QSize const & windowSize) const;
-    QRect calculatePopupWindowPos(const ILXQtPanelPlugin *plugin, const QSize &windowSize) const;
+    QRect calculatePopupWindowPos(QPoint const & absolutePos, QSize const & windowSize) const override;
+    QRect calculatePopupWindowPos(const ILXQtPanelPlugin *plugin, const QSize &windowSize) const override;
+    void willShowWindow(QWidget * w) override;
 
     // For QSS properties ..................
     QString qssPosition() const;
@@ -92,8 +97,8 @@ public:
 
     // Settings
     int panelSize() const { return mPanelSize; }
-    int iconSize() const { return mIconSize; }
-    int lineCount() const { return mLineCount; }
+    int iconSize() const override { return mIconSize; }
+    int lineCount() const override { return mLineCount; }
     int length() const { return mLength; }
     bool lengthInPercents() const { return mLengthInPercents; }
     LXQtPanel::Alignment alignment() const { return mAlignment; }
@@ -103,8 +108,6 @@ public:
     QString backgroundImage() const { return mBackgroundImage; };
     int opacity() const { return mOpacity; };
     bool hidable() const { return mHidable; }
-
-    LXQt::Settings *settings() const { return mSettings; }
 
     bool isPluginSingletonAndRunnig(QString const & pluginId) const;
 
@@ -137,11 +140,12 @@ signals:
     void pluginRemoved();
 
 protected:
-    bool event(QEvent *event);
-    void showEvent(QShowEvent *event);
+    bool event(QEvent *event) override;
+    void showEvent(QShowEvent *event) override;
 
 public slots:
     void showConfigDialog();
+
 private slots:
     void showAddPluginDialog();
     void realign();
@@ -154,6 +158,7 @@ private:
     QFrame *LXQtPanelWidget;
     QString mConfigGroup;
     QScopedPointer<PanelPluginsModel> mPlugins;
+    QScopedPointer<WindowNotifier> mStandaloneWindows; //!< object for storing info if some standalone window is shown (for preventing hide)
 
     int findAvailableScreen(LXQtPanel::Position position);
     void updateWmStrut();
@@ -188,6 +193,9 @@ private:
     QPointer<ConfigPanelDialog> mConfigDialog;
 
     void updateStyleSheet();
+
+    // settings should be kept private for security
+    LXQt::Settings *settings() const { return mSettings; }
 };
 
 

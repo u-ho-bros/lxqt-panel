@@ -38,9 +38,9 @@
 //Note: strings can't actually be translated here (in static initialization time)
 //      the QT_TR_NOOP here is just for qt translate tools to get the strings for translation
 const QStringList LXQtSysStatConfiguration::msStatTypes = {
-    QStringLiteral(QT_TR_NOOP("CPU"))
-    , QStringLiteral(QT_TR_NOOP("Memory"))
-    , QStringLiteral(QT_TR_NOOP("Network"))
+    QLatin1String(QT_TR_NOOP("CPU"))
+    , QLatin1String(QT_TR_NOOP("Memory"))
+    , QLatin1String(QT_TR_NOOP("Network"))
 };
 
 namespace
@@ -53,6 +53,7 @@ namespace
     {
         const char * loc;
         loc = QT_TRANSLATE_NOOP("LXQtSysStatConfiguration", "cpu");
+        loc = QT_TRANSLATE_NOOP("LXQtSysStatConfiguration", "cpu0");
         loc = QT_TRANSLATE_NOOP("LXQtSysStatConfiguration", "cpu1");
         loc = QT_TRANSLATE_NOOP("LXQtSysStatConfiguration", "cpu2");
         loc = QT_TRANSLATE_NOOP("LXQtSysStatConfiguration", "cpu3");
@@ -62,6 +63,7 @@ namespace
         loc = QT_TRANSLATE_NOOP("LXQtSysStatConfiguration", "cpu7");
         loc = QT_TRANSLATE_NOOP("LXQtSysStatConfiguration", "cpu8");
         loc = QT_TRANSLATE_NOOP("LXQtSysStatConfiguration", "cpu9");
+        loc = QT_TRANSLATE_NOOP("LXQtSysStatConfiguration", "cpu10");
         loc = QT_TRANSLATE_NOOP("LXQtSysStatConfiguration", "cpu11");
         loc = QT_TRANSLATE_NOOP("LXQtSysStatConfiguration", "cpu12");
         loc = QT_TRANSLATE_NOOP("LXQtSysStatConfiguration", "cpu13");
@@ -75,7 +77,6 @@ namespace
         loc = QT_TRANSLATE_NOOP("LXQtSysStatConfiguration", "cpu21");
         loc = QT_TRANSLATE_NOOP("LXQtSysStatConfiguration", "cpu22");
         loc = QT_TRANSLATE_NOOP("LXQtSysStatConfiguration", "cpu23");
-        loc = QT_TRANSLATE_NOOP("LXQtSysStatConfiguration", "cpu24");
         loc = QT_TRANSLATE_NOOP("LXQtSysStatConfiguration", "memory");
         loc = QT_TRANSLATE_NOOP("LXQtSysStatConfiguration", "swap");
         static_cast<void>(t);//avoid unused variable warning

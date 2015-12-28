@@ -157,31 +157,44 @@ void LXQtTaskButton::refreshIconGeometry(QRect const & geom)
  ************************************************/
 void LXQtTaskButton::dragEnterEvent(QDragEnterEvent *event)
 {
-    if (event->mimeData()->hasFormat(mimeDataFormat()))
-    {
-        event->ignore();
-        return;
-    }
-
-    mDNDTimer->start();
-
     // It must be here otherwise dragLeaveEvent and dragMoveEvent won't be called
     // on the other hand drop and dragmove events of parent widget won't be called
-    event->accept();
+    event->acceptProposedAction();
+    if (event->mimeData()->hasFormat(mimeDataFormat()))
+    {
+        emit dragging(event->source(), event->pos());
+        setAttribute(Qt::WA_UnderMouse, false);
+    } else
+    {
+        mDNDTimer->start();
+    }
+
     QToolButton::dragEnterEvent(event);
+}
+
+void LXQtTaskButton::dragMoveEvent(QDragMoveEvent * event)
+{
+    if (event->mimeData()->hasFormat(mimeDataFormat()))
+    {
+        emit dragging(event->source(), event->pos());
+        setAttribute(Qt::WA_UnderMouse, false);
+    }
 }
 
 void LXQtTaskButton::dragLeaveEvent(QDragLeaveEvent *event)
 {
     mDNDTimer->stop();
-    event->ignore();
     QToolButton::dragLeaveEvent(event);
 }
 
 void LXQtTaskButton::dropEvent(QDropEvent *event)
 {
     mDNDTimer->stop();
-    event->ignore();
+    if (event->mimeData()->hasFormat(mimeDataFormat()))
+    {
+        emit dropped(event->source(), event->pos());
+        setAttribute(Qt::WA_UnderMouse, false);
+    }
     QToolButton::dropEvent(event);
 }
 
@@ -241,11 +254,20 @@ void LXQtTaskButton::mouseMoveEvent(QMouseEvent* event)
 
     QDrag *drag = new QDrag(this);
     drag->setMimeData(mimeData());
-
-    //fixme when vertical panel, pixmap is empty
-    QPixmap pixmap = grab();
-    drag->setPixmap(pixmap);
-    drag->setHotSpot(QPoint(mapTo(this, event->pos())));
+    QIcon ico = icon();
+    QPixmap img = ico.pixmap(ico.actualSize({32, 32}));
+    drag->setPixmap(img);
+    switch (parentTaskBar()->panel()->position())
+    {
+        case ILXQtPanel::PositionLeft:
+        case ILXQtPanel::PositionTop:
+            drag->setHotSpot({0, 0});
+            break;
+        case ILXQtPanel::PositionRight:
+        case ILXQtPanel::PositionBottom:
+            drag->setHotSpot(img.rect().bottomRight());
+            break;
+    }
 
     sDraggging = true;
     drag->exec();

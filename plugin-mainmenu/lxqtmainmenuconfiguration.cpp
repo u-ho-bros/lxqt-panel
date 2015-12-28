@@ -30,21 +30,25 @@
 #include "ui_lxqtmainmenuconfiguration.h"
 #include <XdgMenu>
 #include <XdgIcon>
+#include <lxqt-globalkeys.h>
 
 #include <QFileDialog>
 
-LXQtMainMenuConfiguration::LXQtMainMenuConfiguration(QSettings &settings, const QString &defaultShortcut, QWidget *parent) :
+LXQtMainMenuConfiguration::LXQtMainMenuConfiguration(QSettings &settings, GlobalKeyShortcut::Action * shortcut, const QString &defaultShortcut, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::LXQtMainMenuConfiguration),
     mSettings(settings),
     mOldSettings(settings),
-    mDefaultShortcut(defaultShortcut)
+    mDefaultShortcut(defaultShortcut),
+    mShortcut(shortcut)
 {
     setAttribute(Qt::WA_DeleteOnClose);
     setObjectName("MainMenuConfigurationWindow");
     ui->setupUi(this);
 
-    ui->chooseMenuFilePB->setIcon(XdgIcon::fromTheme("folder"));
+    QIcon folder{XdgIcon::fromTheme("folder")};
+    ui->chooseMenuFilePB->setIcon(folder);
+    ui->iconPB->setIcon(folder);
 
     connect(ui->buttons, SIGNAL(clicked(QAbstractButton*)), this, SLOT(dialogButtonsAction(QAbstractButton*)));
 
@@ -55,7 +59,12 @@ LXQtMainMenuConfiguration::LXQtMainMenuConfiguration(QSettings &settings, const 
     connect(ui->chooseMenuFilePB, SIGNAL(clicked()), this, SLOT(chooseMenuFile()));
     connect(ui->menuFilePathLE, &QLineEdit::textChanged, [this] (QString const & file)
         {
-            mSettings.setValue(QStringLiteral("menu_file"), file);
+            mSettings.setValue(QLatin1String("menu_file"), file);
+        });
+    connect(ui->iconPB, &QAbstractButton::clicked, this, &LXQtMainMenuConfiguration::chooseIcon);
+    connect(ui->iconLE, &QLineEdit::textChanged, [this] (QString const & path)
+        {
+            mSettings.setValue(QLatin1String("icon"), path);
         });
 
     connect(ui->shortcutEd, SIGNAL(shortcutGrabbed(QString)), this, SLOT(shortcutChanged(QString)));
@@ -63,6 +72,8 @@ LXQtMainMenuConfiguration::LXQtMainMenuConfiguration(QSettings &settings, const 
 
     connect(ui->customFontCB, SIGNAL(toggled(bool)), this, SLOT(customFontChanged(bool)));
     connect(ui->customFontSizeSB, SIGNAL(valueChanged(int)), this, SLOT(customFontSizeChanged(int)));
+
+    connect(mShortcut, &GlobalKeyShortcut::Action::shortcutChanged, this, &LXQtMainMenuConfiguration::globalShortcutChanged);
 }
 
 LXQtMainMenuConfiguration::~LXQtMainMenuConfiguration()
@@ -72,6 +83,7 @@ LXQtMainMenuConfiguration::~LXQtMainMenuConfiguration()
 
 void LXQtMainMenuConfiguration::loadSettings()
 {
+    ui->iconLE->setText(mSettings.value("icon", QLatin1String(LXQT_GRAPHICS_DIR"/helix.svg")).toString());
     ui->showTextCB->setChecked(mSettings.value("showText", false).toBool());
     ui->textLE->setText(mSettings.value("text", "").toString());
 
@@ -81,7 +93,7 @@ void LXQtMainMenuConfiguration::loadSettings()
         menuFile = XdgMenu::getMenuFileName();
     }
     ui->menuFilePathLE->setText(menuFile);
-    ui->shortcutEd->setText(mSettings.value("shortcut", "Alt+F1").toString());
+    ui->shortcutEd->setText(nullptr != mShortcut ? mShortcut->shortcut() : mDefaultShortcut);
 
     ui->customFontCB->setChecked(mSettings.value("customFont", false).toBool());
     LXQt::Settings lxqtSettings("lxqt"); //load system font size as init value
@@ -91,6 +103,7 @@ void LXQtMainMenuConfiguration::loadSettings()
     lxqtSettings.endGroup();
     ui->customFontSizeSB->setValue(mSettings.value("customFontSize", systemFont.pointSize()).toInt());
 }
+
 
 void LXQtMainMenuConfiguration::textButtonChanged(const QString &value)
 {
@@ -102,11 +115,25 @@ void LXQtMainMenuConfiguration::showTextChanged(bool value)
     mSettings.setValue("showText", value);
 }
 
+void LXQtMainMenuConfiguration::chooseIcon()
+{
+    QFileDialog *d = new QFileDialog(this,
+                                     tr("Choose icon file"),
+                                     QLatin1String(LXQT_GRAPHICS_DIR),
+                                     tr("Images (*.svg *.png)"));
+    d->setWindowModality(Qt::WindowModal);
+    d->setAttribute(Qt::WA_DeleteOnClose);
+    connect(d, &QFileDialog::fileSelected, [&] (const QString &icon) {
+        ui->iconLE->setText(icon);
+    });
+    d->show();
+}
+
 void LXQtMainMenuConfiguration::chooseMenuFile()
 {
     QFileDialog *d = new QFileDialog(this,
                                      tr("Choose menu file"),
-                                     QStringLiteral("/etc/xdg/menus"),
+                                     QLatin1String("/etc/xdg/menus"),
                                      tr("Menu files (*.menu)"));
     d->setWindowModality(Qt::WindowModal);
     d->setAttribute(Qt::WA_DeleteOnClose);
@@ -116,10 +143,15 @@ void LXQtMainMenuConfiguration::chooseMenuFile()
     d->show();
 }
 
+void LXQtMainMenuConfiguration::globalShortcutChanged(const QString &/*oldShortcut*/, const QString &newShortcut)
+{
+    ui->shortcutEd->setText(newShortcut);
+}
+
 void LXQtMainMenuConfiguration::shortcutChanged(const QString &value)
 {
-    ui->shortcutEd->setText(value);
-    mSettings.setValue("shortcut", value);
+    if (mShortcut)
+        mShortcut->changeShortcut(value);
 }
 
 void LXQtMainMenuConfiguration::shortcutReset()
